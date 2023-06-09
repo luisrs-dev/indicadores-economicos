@@ -24,6 +24,7 @@
     "path": "^0.12.7",
     "react-bootstrap": "^2.7.4",
     "react-date-range": "^1.4.0",
+    "react-loader-spinner": "^5.3.4",
     "style-loader": "^3.3.3"
   },
   "devDependencies": {

@@ -1,10 +1,10 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-// import mongoose from './src/database.js'
+import mongoose from './src/database.js'
 import path from 'path'
 import {fileURLToPath} from 'url'
-// import indicatorRouter from './src/routes/indicators-routes.js'
+import indicatorRouter from './src/routes/indicators-routes.js'
 import "dotenv/config";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,7 +19,7 @@ app.use(bodyParser.json())
 //     res.send('Hello World!')
 // })
 
-// app.use('/api/indicators', indicatorRouter)
+app.use('/api/indicators', indicatorRouter)
 
 app.use(express.static(path.join(__dirname, 'public')))
 

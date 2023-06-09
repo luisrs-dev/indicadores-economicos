@@ -1,21 +1,72 @@
 import React, { useEffect, useState } from "react";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { indicators as dataIndicators } from "../data/indicators.jsx";
+import { indicators as dataIndicators } from "../data/indicators240.jsx";
 import { token } from "../data/token.jsx";
 
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 
-function App() {
-  
-    const [indicators, setIndicators] = useState([]);
-  const [allIndicators, setAllIndicators] = useState([]);
+import { Rings } from "react-loader-spinner";
 
+function App() {
+  const [filteredIndicators, setFilteredIndicators] = useState([]);
+  const [indicators, setIndicators] = useState([]);
+  const [indicatorsAPI, setIndicatorsAPI] = useState([]);
+  const [registeredIndicators, setRegisteredIndicators] = useState(0); 
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+
+  const handleSearchIndicators = () => {
+    let filtered = indicators.filter((indicator) => {
+      let indicatorDate = new Date(indicator.fechaIndicador)
+        .toISOString()
+        .slice(0, 10);
+      return indicatorDate >= startDate && indicatorDate <= endDate;
+    });
+    setFilteredIndicators(filtered);
+  };
+
+  const loadIndicators = () => {
+    try {
+      indicatorsAPI.forEach((indicator) => {
+        fetch("/api/indicators", {
+          method: "POST",
+          body: JSON.stringify(indicator),
+          headers: {
+            Accept: "application/json",
+            "Content-type": "application/json",
+          },
+        })
+          .then((data) => data.json())
+          .then((data) => {
+            // M.toast({html: 'Tarea guardada'})
+            // setTask({title : '', description : ''})
+            console.log(data);
+            setRegisteredIndicators(data.records);
+            // fetchTasks()
+          })
+          .catch((err) => console.error(err));
+      }); 
+      fetchIndicators();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchIndicators = () => {
+    fetch("/api/indicators")
+      .then((data) => data.json())
+      .then((data) => {
+        setIndicators(data.indicators)
+        setRegisteredIndicators(data.records)
+        // setTasks(data)
+        // console.log(tasks);
+      })
+      .catch((err) => console.error(err));
+  };
 
   const apiGetToken = () => {
     const requestOptions = {
@@ -40,7 +91,8 @@ function App() {
 
   useEffect(() => {
     apiGetToken();
-    setAllIndicators(dataIndicators);
+    setIndicatorsAPI(dataIndicators);
+    fetchIndicators();
     // const headers = { 'Authorization': `'Bearer ${token}'` };
     // fetch('https://postulaciones.solutoria.cl/api/indicadores', {
     //   headers: {
@@ -54,87 +106,65 @@ function App() {
     // .catch(error => console.error(error))
   }, []);
 
-  const handleSearchIndicators = () => {
-    let filteredIndicators = allIndicators.filter((indicator) => {
-      let indicatorDate = new Date(indicator.fechaIndicador)
-        .toISOString()
-        .slice(0, 10);
-      return indicatorDate >= startDate && indicatorDate <= endDate;
-    });
-    setIndicators(filteredIndicators);
-  };
-
-  const handleSelect = (date) => {
-    let filtered = allIndicators.filter((indicator) => {
-      let indicatorDate = new Date(indicator.fechaIndicador);
-      return (
-        indicatorDate >= date.selection.startDate &&
-        indicatorDate <= date.selection.endDate
-      );
-    });
-
-    console.log(filtered);
-
-    setStartDate(date.selection.startDate);
-    setEndDate(date.selection.endDate);
-    setIndicators(filtered);
-  };
-
-  const selectionRange = {
-    startDate: startDate,
-    endDate: endDate,
-    key: "selection",
-  };
-
   return (
     <>
-      <div className="container">
-        <h1>Indicadores Económicos</h1>
-        <div className="row">
-          <div className="col">
-            <Form.Control
-              type="date"
-              id="startDate"
-              onChange={() =>
-                setStartDate(document.getElementById("startDate").value)
-              }
-              defaultValue={startDate}
-            />
-          </div>
-          <div className="col">
-            <Form.Control
-              type="date"
-              id="endDate"
-              onChange={() =>
-                setEndDate(document.getElementById("endDate").value)
-              }
-              defaultValue={endDate}
-            />
-          </div>
-          <div className="col">
-            <Button variant="danger" onClick={handleSearchIndicators}>
-              Buscar
-            </Button>
-          </div>
-        </div>
+      
+        <div className="container">
+          <h1>Indicadores Económicos</h1>
 
-        <div className="row">
-          <div className="col">
-            <div className="card">
-              {indicators
-                ? indicators.map((indicator, index) => {
-                    return (
-                      <p key={index}>
-                        {indicator.fechaIndicador} //{" "}
-                        {indicator.nombreIndicador}{" "}
-                      </p>
-                    );
-                  })
-                : null}
+          <div className="row">
+            <div className="col">
+              <h6>{registeredIndicators} indicadores registrados</h6>
+              <Button onClick={loadIndicators}>Cargar indicadores</Button>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col">
+              <Form.Control
+                type="date"
+                id="startDate"
+                onChange={() =>
+                  setStartDate(document.getElementById("startDate").value)
+                }
+                defaultValue={startDate}
+              />
+            </div>
+            <div className="col">
+              <Form.Control
+                type="date"
+                id="endDate"
+                onChange={() =>
+                  setEndDate(document.getElementById("endDate").value)
+                }
+                defaultValue={endDate}
+              />
+            </div>
+            <div className="col">
+              <Button variant="danger" onClick={handleSearchIndicators}>
+                Buscar
+              </Button>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col">
+              <div className="card">
+                {filteredIndicators
+                  ? filteredIndicators.map((indicator, index) => {
+                      return (
+                        <p key={index}>
+                          {indicator.fechaIndicador} //{" "}
+                          {indicator.nombreIndicador}{" "}
+                        </p>
+                      );
+                    })
+                  : null}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      
 
       {/* <p className="read-the-docs">
         Click on the Vite and React logos to learn more
