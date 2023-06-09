@@ -9,7 +9,7 @@ const IndicatorSchema = new Schema({
     origenIndicador : {type : String, required : true},
     tiempoIndicador : {type : Number, required : false},
     unidadMedidaIndicador : {type : String, required : true},
-    valorIndicador : {type : SchemaTypes.Decimal128 , required : true},
+    valorIndicador : {type : Number , required : true},
 })
 
 export default mongoose.model('Indicator', IndicatorSchema)

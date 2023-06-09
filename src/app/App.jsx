@@ -6,8 +6,7 @@ import { token } from "../data/token.jsx";
 
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-
-import { Rings } from "react-loader-spinner";
+import ChartBar from './charts/Bar.jsx'
 
 function App() {
   const [filteredIndicators, setFilteredIndicators] = useState([]);
@@ -18,6 +17,8 @@ function App() {
     new Date().toISOString().slice(0, 10)
   );
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dataChart, setDataChart] = useState(null)
+  const [labelsChart, setLabelsChart] = useState(null)
 
   const handleSearchIndicators = () => {
     let filtered = indicators.filter((indicator) => {
@@ -27,7 +28,52 @@ function App() {
       return indicatorDate >= startDate && indicatorDate <= endDate;
     });
     setFilteredIndicators(filtered);
+    const dates = filtered.map(indicator => new Date(indicator.fechaIndicador).toISOString().slice(0, 10) );
+    const labels = [...new Set(dates)].sort(function(a,b){
+      return new Date(a) - new Date(b)
+});
+    setLabelsChart(labels)    
+    
+    const dataIndicators = [];
+    filtered.map(indicador => {
+      const found = dataIndicators.find( d => d.nombre == indicador.nombreIndicador) 
+      if(!found){
+        dataIndicators.push({nombre : indicador.nombreIndicador, valores : [{valor : indicador.valorIndicador, fecha : new Date(indicador.fechaIndicador).toISOString().slice(0, 10)} ] }) 
+      }else{
+        found.valores.push({valor : indicador.valorIndicador, fecha : new Date(indicador.fechaIndicador).toISOString().slice(0, 10)})
+      }
+    })
+    
+    dataIndicators.forEach(dataIndicator => {
+      dataIndicator.dataset = []
+      labels.forEach(label => {
+        let found = dataIndicator.valores.find(data => data.fecha == label)
+        dataIndicator.dataset.push(found ? found.valor : 0)
+      })
+      });
+
+      const dataToChart = dataIndicators.map(d => {
+        return  {label : d.nombre, data : d.dataset, backgroundColor: randomColor(), }
+      })
+
+      setDataChart(dataToChart)
+
   };
+
+  const randomColor = () => {
+    var x = Math.floor(Math.random() * 256);
+    var y = Math.floor(Math.random() * 256);
+    var z = Math.floor(Math.random() * 256);
+    // var bgColor = "rgb(" + x + "," + y + "," + z + ")";
+    var bgColor = `rgba(${x},${y},${z},0.5)`;
+    return bgColor;
+  }
+
+  
+  useEffect( () => {
+    console.log(dataChart);
+    console.log(labelsChart);
+  }, [dataChart, labelsChart])
 
   const loadIndicators = () => {
     try {
@@ -147,20 +193,25 @@ function App() {
             </div>
           </div>
 
-          <div className="row">
+          {/* <div className="row">
             <div className="col">
               <div className="card">
                 {filteredIndicators
                   ? filteredIndicators.map((indicator, index) => {
                       return (
                         <p key={index}>
-                          {indicator.fechaIndicador} //{" "}
-                          {indicator.nombreIndicador}{" "}
+                          {indicator.fechaIndicador} // {indicator.nombreIndicador} // {indicator.valorIndicador} 
                         </p>
                       );
                     })
                   : null}
               </div>
+            </div>
+          </div> */}
+          <div className="row">
+            <div className="col-md-12">
+              
+              {dataChart && labelsChart ? <ChartBar dataChart={dataChart} labelsChart={labelsChart}></ChartBar> : null}
             </div>
           </div>
         </div>
