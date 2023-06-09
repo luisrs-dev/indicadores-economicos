@@ -152,7 +152,7 @@ function App() {
   };
 
   useEffect(() => {
-    apiGetToken();
+    // apiGetToken();
     setIndicatorsAPI(dataIndicators);
     fetchIndicators();
     // const headers = { 'Authorization': `'Bearer ${token}'` };
@@ -175,13 +175,28 @@ function App() {
         </div>
         <div className="row">
           <div className="col m-2">
-            <h6>{registeredIndicators} indicadores registrados</h6>
-            <Button onClick={loadIndicators} variant="success">
-              Cargar indicadores
-            </Button>
+            {registeredIndicators > 1 ? (
+              ""
+            ) : (
+              <>
+                <p>
+                  Inicialmente se permite cargar los indicadores en la base de
+                  datos.
+                </p>
+
+                <Button onClick={loadIndicators} variant="success">
+                  Cargar indicadores
+                </Button>
+              </>
+            )}
+            <p>{registeredIndicators} indicadores registrados</p>
           </div>
         </div>
+        <hr />
 
+        <div className="row">
+          <h1>Buscar por rango de fecha</h1>
+        </div>
         <div className="row">
           <div className="col">
             <Form.Control
@@ -220,10 +235,12 @@ function App() {
             ) : null}
           </div>
         </div>
-
+        <hr />
+        <div className="row">
+          <h1>Gestión de indicadores</h1>
+        </div>
         <div className="row mt-4">
           <div className="col-md-4">
-            <h5>Gestión de indicadores</h5>
             <FormIndicators
               indicator={indicator}
               setIndicator={setIndicator}
