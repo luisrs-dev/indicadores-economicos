@@ -1,79 +1,102 @@
 import React, { useEffect, useState } from "react";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { indicators as dataIndicators } from "../data/indicators240.jsx";
+import { indicators as dataIndicators } from "../data/allindicators.jsx";
 import { token } from "../data/token.jsx";
+
+import { randomColor } from "../utils/colorRandom.js";
+import FormIndicators from "./components/FormIndicators.jsx";
+import TableIndicators from "./components/TableIndicators.jsx";
 
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import ChartBar from './charts/Bar.jsx'
+import ChartBar from "./charts/Bar.jsx";
 
 function App() {
-  const [filteredIndicators, setFilteredIndicators] = useState([]);
+  const [indicator, setIndicator] = useState({
+    codigoIndicador: "",
+    fechaIndicador: "",
+    nombreIndicador: "",
+    origenIndicador: "",
+    tiempoIndicador: "",
+    unidadMedidaIndicador: "",
+    valorIndicador: "",
+  });
   const [indicators, setIndicators] = useState([]);
   const [indicatorsAPI, setIndicatorsAPI] = useState([]);
-  const [registeredIndicators, setRegisteredIndicators] = useState(0); 
+  const [registeredIndicators, setRegisteredIndicators] = useState(0);
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
-  const [dataChart, setDataChart] = useState(null)
-  const [labelsChart, setLabelsChart] = useState(null)
+  const [dataChart, setDataChart] = useState(null);
+  const [labelsChart, setLabelsChart] = useState(null);
 
   const handleSearchIndicators = () => {
+    // TODO
+    // Corregir manejo de fechas con Moment
     let filtered = indicators.filter((indicator) => {
       let indicatorDate = new Date(indicator.fechaIndicador)
         .toISOString()
         .slice(0, 10);
       return indicatorDate >= startDate && indicatorDate <= endDate;
     });
-    setFilteredIndicators(filtered);
-    const dates = filtered.map(indicator => new Date(indicator.fechaIndicador).toISOString().slice(0, 10) );
-    const labels = [...new Set(dates)].sort(function(a,b){
-      return new Date(a) - new Date(b)
-});
-    setLabelsChart(labels)    
-    
+
+    const dates = filtered.map((indicator) =>
+      new Date(indicator.fechaIndicador).toISOString().slice(0, 10)
+    );
+
+    // Se obtienen labels únicos para gráfico
+    const labels = [...new Set(dates)].sort(function (a, b) {
+      return new Date(a) - new Date(b);
+    });
+    setLabelsChart(labels);
+
+    // Se agrupan datos de indicadores por nombre y sus valores por cada fecha
     const dataIndicators = [];
-    filtered.map(indicador => {
-      const found = dataIndicators.find( d => d.nombre == indicador.nombreIndicador) 
-      if(!found){
-        dataIndicators.push({nombre : indicador.nombreIndicador, valores : [{valor : indicador.valorIndicador, fecha : new Date(indicador.fechaIndicador).toISOString().slice(0, 10)} ] }) 
-      }else{
-        found.valores.push({valor : indicador.valorIndicador, fecha : new Date(indicador.fechaIndicador).toISOString().slice(0, 10)})
+    filtered.map((indicador) => {
+      const found = dataIndicators.find(
+        (d) => d.nombre == indicador.nombreIndicador
+      );
+      if (!found) {
+        dataIndicators.push({
+          nombre: indicador.nombreIndicador,
+          valores: [
+            {
+              valor: indicador.valorIndicador,
+              fecha: new Date(indicador.fechaIndicador)
+                .toISOString()
+                .slice(0, 10),
+            },
+          ],
+        });
+      } else {
+        found.valores.push({
+          valor: indicador.valorIndicador,
+          fecha: new Date(indicador.fechaIndicador).toISOString().slice(0, 10),
+        });
       }
-    })
-    
-    dataIndicators.forEach(dataIndicator => {
-      dataIndicator.dataset = []
-      labels.forEach(label => {
-        let found = dataIndicator.valores.find(data => data.fecha == label)
-        dataIndicator.dataset.push(found ? found.valor : 0)
-      })
+    });
+
+    // Se genera dataset con los valores por fecha
+    dataIndicators.forEach((dataIndicator) => {
+      dataIndicator.dataset = [];
+      labels.forEach((label) => {
+        let found = dataIndicator.valores.find((data) => data.fecha == label);
+        dataIndicator.dataset.push(found ? found.valor : 0);
       });
+    });
 
-      const dataToChart = dataIndicators.map(d => {
-        return  {label : d.nombre, data : d.dataset, backgroundColor: randomColor(), }
-      })
+    const dataToChart = dataIndicators.map((d) => {
+      return {
+        label: d.nombre,
+        data: d.dataset,
+        backgroundColor: randomColor(),
+      };
+    });
 
-      setDataChart(dataToChart)
-
+    setDataChart(dataToChart);
   };
-
-  const randomColor = () => {
-    var x = Math.floor(Math.random() * 256);
-    var y = Math.floor(Math.random() * 256);
-    var z = Math.floor(Math.random() * 256);
-    // var bgColor = "rgb(" + x + "," + y + "," + z + ")";
-    var bgColor = `rgba(${x},${y},${z},0.5)`;
-    return bgColor;
-  }
-
-  
-  useEffect( () => {
-    console.log(dataChart);
-    console.log(labelsChart);
-  }, [dataChart, labelsChart])
 
   const loadIndicators = () => {
     try {
@@ -88,14 +111,10 @@ function App() {
         })
           .then((data) => data.json())
           .then((data) => {
-            // M.toast({html: 'Tarea guardada'})
-            // setTask({title : '', description : ''})
-            console.log(data);
             setRegisteredIndicators(data.records);
-            // fetchTasks()
           })
           .catch((err) => console.error(err));
-      }); 
+      });
       fetchIndicators();
     } catch (error) {
       console.error(error);
@@ -106,10 +125,8 @@ function App() {
     fetch("/api/indicators")
       .then((data) => data.json())
       .then((data) => {
-        setIndicators(data.indicators)
-        setRegisteredIndicators(data.records)
-        // setTasks(data)
-        // console.log(tasks);
+        setIndicators(data.indicators);
+        setRegisteredIndicators(data.records);
       })
       .catch((err) => console.error(err));
   };
@@ -126,13 +143,12 @@ function App() {
         flagJson: true,
       }),
     };
-    // fetch("https://postulaciones.solutoria.cl/api/acceso", { requestOptions })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log(data);
-    //     setIndicators(dataIndicators);
-    //   })
-    //   .catch((error) => console.error(error));
+    fetch("https://postulaciones.solutoria.cl/api/acceso", { requestOptions })
+      .then((response) => response.json())
+      .then((data) => {
+        // setIndicators(dataIndicators);
+      })
+      .catch((error) => console.error(error));
   };
 
   useEffect(() => {
@@ -147,79 +163,88 @@ function App() {
     // })
     // .then(response => response.json())
     // .then(data => {
-    //   console.log(data);
     //   })
     // .catch(error => console.error(error))
   }, []);
 
   return (
     <>
-      
-        <div className="container">
+      <div className="container" style={{ padding: "5%" }}>
+        <div className="row">
           <h1>Indicadores Económicos</h1>
-
-          <div className="row">
-            <div className="col">
-              <h6>{registeredIndicators} indicadores registrados</h6>
-              <Button onClick={loadIndicators}>Cargar indicadores</Button>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col">
-              <Form.Control
-                type="date"
-                id="startDate"
-                onChange={() =>
-                  setStartDate(document.getElementById("startDate").value)
-                }
-                defaultValue={startDate}
-              />
-            </div>
-            <div className="col">
-              <Form.Control
-                type="date"
-                id="endDate"
-                onChange={() =>
-                  setEndDate(document.getElementById("endDate").value)
-                }
-                defaultValue={endDate}
-              />
-            </div>
-            <div className="col">
-              <Button variant="danger" onClick={handleSearchIndicators}>
-                Buscar
-              </Button>
-            </div>
-          </div>
-
-          {/* <div className="row">
-            <div className="col">
-              <div className="card">
-                {filteredIndicators
-                  ? filteredIndicators.map((indicator, index) => {
-                      return (
-                        <p key={index}>
-                          {indicator.fechaIndicador} // {indicator.nombreIndicador} // {indicator.valorIndicador} 
-                        </p>
-                      );
-                    })
-                  : null}
-              </div>
-            </div>
-          </div> */}
-          <div className="row">
-            <div className="col-md-12">
-              
-              {dataChart && labelsChart ? <ChartBar dataChart={dataChart} labelsChart={labelsChart}></ChartBar> : null}
-            </div>
+        </div>
+        <div className="row">
+          <div className="col m-2">
+            <h6>{registeredIndicators} indicadores registrados</h6>
+            <Button onClick={loadIndicators} variant="success">
+              Cargar indicadores
+            </Button>
           </div>
         </div>
-      
 
-      {/* <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p> */}
+        <div className="row">
+          <div className="col">
+            <Form.Control
+              type="date"
+              id="startDate"
+              onChange={() =>
+                setStartDate(document.getElementById("startDate").value)
+              }
+              defaultValue={startDate}
+            />
+          </div>
+          <div className="col">
+            <Form.Control
+              type="date"
+              id="endDate"
+              onChange={() =>
+                setEndDate(document.getElementById("endDate").value)
+              }
+              defaultValue={endDate}
+            />
+          </div>
+          <div className="col">
+            <Button variant="danger" onClick={handleSearchIndicators}>
+              Buscar
+            </Button>
+          </div>
+        </div>
+
+        <div className="row">
+          <div className="col-md-12">
+            {dataChart && labelsChart ? (
+              <ChartBar
+                dataChart={dataChart}
+                labelsChart={labelsChart}
+              ></ChartBar>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-md-4">
+            <h5>Gestión de indicadores</h5>
+            <FormIndicators
+              indicator={indicator}
+              setIndicator={setIndicator}
+              fetchIndicators={fetchIndicators}
+            ></FormIndicators>
+          </div>
+          <div className="col-md-6">
+            Lista de indicadores
+            {indicators.length > 0 ? (
+              <TableIndicators
+                indicator={indicator}
+                setIndicator={setIndicator}
+                fetchIndicators={fetchIndicators}
+                indicators={indicators}
+              ></TableIndicators>
+            ) : (
+              ""
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 }

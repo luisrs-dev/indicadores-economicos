@@ -7,10 +7,44 @@ router.get('/', async (req, res) => {
     res.json({state: true, indicators : indicators, records : indicators.length})
 })
 
-// router.get('/:id', async (req, res) => {
-//     const indicator = await Indicator.findById(req.params.id)
-//     res.json(indicator)
-// })
+router.get('/:id', async (req, res) => {
+    const indicator = await Indicator.findById(req.params.id)
+    res.json(indicator)
+})
+
+router.post('/add', async (req, res) => {
+    const {
+        codigoIndicador,
+        fechaIndicador,
+        nombreIndicador,
+        origenIndicador,
+        tiempoIndicador,
+        unidadMedidaIndicador,
+        valorIndicador,
+    
+    } = req.body;
+
+    const indicators = await Indicator.find();
+
+    const indicator = new Indicator({
+        id : indicators.length + 1,
+        codigoIndicador,
+        fechaIndicador,
+        nombreIndicador,
+        origenIndicador,
+        tiempoIndicador,
+        unidadMedidaIndicador,
+        valorIndicador});
+    await indicator.save();
+    res.json({
+        status : true,
+        msg : 'Indicator saved'});
+
+})   
+
+
+
+
 
 router.post('/', async (req, res) => {
     const {
@@ -24,15 +58,6 @@ router.post('/', async (req, res) => {
         valorIndicador,
     
     } = req.body;
-
-    // console.log(codigoIndicador);
-    // console.log(fechaIndicador);
-    // console.log(id);
-    // console.log(nombreIndicador);
-    // console.log(origenIndicador);
-    // console.log(tiempoIndicador);
-    // console.log(unidadMedidaIndicador);
-    // console.log(valorIndicador);
 
     const indicator = new Indicator({
         id,
@@ -53,16 +78,35 @@ router.post('/', async (req, res) => {
         msg : 'Indicator saved'});
 })
 
-// router.put('/:id', async (req, res) => {
-//     const {title, description} = req.body;
-//     const newTask = {title, description};
-//     await  Task.findByIdAndUpdate(req.params.id, newTask);
-//     res.json({status : 'Task Updated'});
-// })
+router.put('/:id', async (req, res) => {
 
-// router.delete('/:id', async (req, res) => {
-//     await  Task.findByIdAndRemove(req.params.id);
-//     res.json({status : 'Task Deleted'});
-// })
+    const {
+        codigoIndicador,
+        fechaIndicador,
+        nombreIndicador,
+        origenIndicador,
+        tiempoIndicador,
+        unidadMedidaIndicador,
+        valorIndicador,
+    
+    } = req.body;
+
+    const newIndicator = {
+        codigoIndicador,
+        fechaIndicador,
+        nombreIndicador,
+        origenIndicador,
+        tiempoIndicador,
+        unidadMedidaIndicador,
+        valorIndicador,
+    };
+    await Indicator.findByIdAndUpdate(req.params.id, newIndicator);
+    res.json({status : 'Indicator Updated'});
+})
+
+router.delete('/:id', async (req, res) => {
+    await  Indicator.findByIdAndRemove(req.params.id);
+    res.json({status : 'Indicator Deleted'});
+})
 
 export default router

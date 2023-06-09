@@ -2,7 +2,7 @@ import mongoose, { SchemaType, SchemaTypes } from 'mongoose'
 const { Schema } = mongoose
 
 const IndicatorSchema = new Schema({
-    id : {type : Number, required : true},
+    id : {type : Number, required : false},
     codigoIndicador : {type : String, required : true},
     fechaIndicador : {type : Date, required : true},
     nombreIndicador : {type : String, required : true},
