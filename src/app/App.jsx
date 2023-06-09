@@ -152,7 +152,7 @@ function App() {
   };
 
   useEffect(() => {
-    // apiGetToken();
+    apiGetToken();
     setIndicatorsAPI(dataIndicators);
     fetchIndicators();
     // const headers = { 'Authorization': `'Bearer ${token}'` };
